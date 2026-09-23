@@ -22,6 +22,7 @@
   --sans:"Jost",system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
 html{scroll-behavior:smooth}
 body{font-family:var(--sans);color:var(--text);background:#fff;font-weight:400;line-height:1.6}
 img{max-width:100%;display:block}
@@ -113,6 +114,35 @@ h2{font-family:var(--serif);font-weight:500;font-size:clamp(2rem,3.6vw,2.9rem);l
 .langs{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
 .langs span{border:1px solid var(--line);padding:5px 14px;font-size:.88rem;color:var(--ink)}
 .about .send{margin-top:30px;display:inline-block;text-decoration:none}
+
+
+/* Reviews */
+.reviews{background:#fff}
+.rv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:28px;margin-top:40px}
+.rv{border:1px solid var(--line);border-top:3px solid var(--gold);padding:28px;background:#fff;display:flex;flex-direction:column}
+.rv .st{color:var(--gold);font-size:1.2rem;letter-spacing:2px}
+.rv blockquote{font-family:var(--serif);font-size:1.25rem;line-height:1.45;color:var(--ink);margin-top:14px;flex:1}
+.rv .by{margin-top:18px;font-size:.88rem;color:var(--muted)}
+.rv .by b{color:var(--text);font-weight:500}
+.rv-cta{margin-top:36px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;color:var(--muted);font-size:.95rem}
+.rv-cta a{text-decoration:none}
+
+
+/* Trust additions */
+.steps-title{font-family:var(--serif);font-weight:500;font-size:1.9rem;color:#fff;margin-top:64px}
+.steps{list-style:none;display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin-top:26px}
+.steps li{border-top:1px solid rgba(189,159,99,.5);padding-top:18px}
+.steps b{font-family:var(--serif);font-size:1.6rem;color:var(--gold);font-weight:500}
+.steps span{display:block;color:#fff;font-weight:500;margin-top:6px}
+.steps p{color:#B8B2A6;font-size:.92rem;margin-top:6px}
+.stats{display:flex;gap:34px;margin-top:24px;flex-wrap:wrap}
+.stats div b{display:block;font-family:var(--serif);font-size:2.2rem;color:var(--ink);font-weight:500;line-height:1}
+.stats div span{font-size:.85rem;color:var(--muted)}
+.quick{margin-top:22px;display:flex;flex-direction:column;gap:6px;font-size:.92rem;color:var(--muted)}
+.quick a{color:#8A6D35;font-weight:500;text-decoration:underline;cursor:pointer}
+.why{grid-column:1/-1;font-size:.88rem;color:var(--muted);background:var(--mist);padding:14px 16px;border-left:2px solid var(--gold);margin-top:-8px}
+@media (max-width:900px){.steps{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.steps{grid-template-columns:1fr}}
 
 /* Enquiry form: white with black & gold accents */
 .enquire{background:#fff;border-top:1px solid var(--line)}
@@ -230,6 +260,7 @@ dialog::backdrop{background:rgba(0,0,0,.85)}
       <a href="#listings">Listings</a>
       <a href="#services">Services</a>
       <a href="#about">About</a>
+      <a href="#reviews" id="navReviews" hidden>Reviews</a>
       <a href="#enquire">Contact</a>
       <a href="#enquire" class="cta">Enquire</a>
     </nav>
@@ -273,7 +304,7 @@ dialog::backdrop{background:rgba(0,0,0,.85)}
       <div class="head">
         <div>
           <h2>Current listings</h2>
-          <p class="sub">Duplexes and penthouses available now. Tap a property to see photos and full details.</p>
+          <p class="sub">Duplexes and lofts available now. Tap a property to see photos and full details.</p>
         </div>
         <div class="tabs" role="group" aria-label="Filter by status">
           <button data-tab="" aria-pressed="true">All</button>
@@ -298,6 +329,13 @@ dialog::backdrop{background:rgba(0,0,0,.85)}
           <p>For buyers, I shortlist units that match how you live and negotiate on your behalf. For owners, I market your property to qualified tenants and buyers in English, Thai and Chinese.</p>
         </article>
       </div>
+      <h3 class="steps-title">How it works</h3>
+      <ol class="steps">
+        <li><b>01</b><span>Tell me what you need</span><p>Send your budget, areas and move-in date through the form or WhatsApp.</p></li>
+        <li><b>02</b><span>Get your shortlist</span><p>I send you homes that match, with real photos and honest details.</p></li>
+        <li><b>03</b><span>View at your pace</span><p>Viewings are arranged around your schedule, and I come with you.</p></li>
+        <li><b>04</b><span>Move in with support</span><p>Help with the contract and handover in English, Thai or Chinese.</p></li>
+      </ol>
     </div>
   </section>
 
@@ -308,9 +346,19 @@ dialog::backdrop{background:rgba(0,0,0,.85)}
         <h2 data-agent-name></h2>
         <p class="role" data-agent-title></p>
         <p class="bio" data-agent-bio></p>
+        <div class="stats" id="stats" hidden></div>
         <div class="langs" id="langs"></div>
         <a href="#enquire" class="send">Talk to me about your next home</a>
       </div>
+    </div>
+  </section>
+
+  <section id="reviews" class="reviews" hidden>
+    <div class="wrap">
+      <h2>What clients say</h2>
+      <p class="sub">Reviews from clients who found their home with Sofia.</p>
+      <div class="rv-grid" id="rvGrid"></div>
+      <div class="rv-cta"><span>Worked with Sofia?</span><a class="send" href="review.html">Write a review</a></div>
     </div>
   </section>
 
@@ -318,11 +366,16 @@ dialog::backdrop{background:rgba(0,0,0,.85)}
     <div class="wrap form-wrap">
       <div>
         <h2>Tell me what you are looking for</h2>
-        <p class="sub">Fill in the form and I will reply with suitable options, usually within the same day.</p>
+        <p class="sub">Fill in the form and I will get back to you with suitable options.</p>
+        <div class="quick">
+          <span>Just have a quick question first?</span>
+          <a id="quickWa" target="_blank" rel="noopener">Chat with Sofia on WhatsApp</a>
+        </div>
         <div class="contact-card"><div class="contact-list" id="contactList"></div></div>
       </div>
       <form class="enq" id="enqForm" novalidate>
         <h3 class="fs-title full">My basic profile <small>All fields required</small></h3>
+        <p class="why full">Landlords in Bangkok and Pattaya usually ask for these details before a viewing. Sharing them now helps me shortlist homes that fit your situation and saves you time. Your details are kept private and used only for your home search.</p>
         <label>I want people to know me as<input name="name" required autocomplete="name"></label>
         <label>My nationality<input name="nationality" required></label>
         <label>My occupation<input name="occupation" required></label>
@@ -429,10 +482,13 @@ const SETTINGS = {
   heroBlur:  5,             // blur strength: 0 = sharp, 10 = very blurry
 
   // Your profile
-  agentName:  "Saranya Aunkham",
+  agentName:  "Miss Saranya Aunkham",
   agentNickname: "Sofia",
   agentTitle: "Duplex & Loft Specialist",
   agentBio:   "Saranya's work began with a special love and passion for this particular type of property, and that passion still drives every search she takes on. To her, finding the right duplex or loft is never routine. Each search is a new challenge and a chance to discover something special. She brings that same dedication to every client, from the very first shortlist to the day you receive your keys.",
+  // Your numbers, shown under your bio. Only real figures. Leave the list empty [] to hide.
+  // Example: stats: [["5+", "Years in real estate"], ["120+", "Homes found for clients"]],
+  stats: [],
   languages:  ["English", "Thai", "Chinese"],
   agentPhoto: "",           // leave empty to use the photo already in this file, or put a new photo link
 
@@ -461,6 +517,8 @@ const SETTINGS = {
   formEndpoint: "",
 
   // 📊 GOOGLE SHEETS: paste your published CSV link here (see guide). Leave empty to use the LISTINGS below.
+  // Published CSV link of the Reviews sheet (leave empty to hide the reviews section)
+  reviewsCsvUrl: "",
   sheetCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT4_YgAp8m3oyWmjaoFeu40j7MtP10tfN8RXmhehVcygIw1b-LEqX89aB8RvEYiusbpr1VBE-uDuNyn/pub?gid=1976690082&single=true&output=csv"
 };
 
@@ -537,6 +595,12 @@ $("[data-agent-name]").textContent = SETTINGS.agentName;
 $("[data-agent-title]").textContent = SETTINGS.agentTitle;
 $("[data-agent-bio]").textContent = SETTINGS.agentBio;
 $("#langs").innerHTML = SETTINGS.languages.map(l => `<span>${esc(l)}</span>`).join("");
+
+if (SETTINGS.stats && SETTINGS.stats.length) {
+  $("#stats").innerHTML = SETTINGS.stats.map(([n, t]) => `<div><b>${esc(n)}</b><span>${esc(t)}</span></div>`).join("");
+  $("#stats").hidden = false;
+}
+$("#quickWa").href = "https://wa.me/" + SETTINGS.whatsapp + "?text=" + encodeURIComponent("Hi Sofia, I have a question about a property.");
 document.title = SETTINGS.siteTitle;
 
 // Contact list
@@ -797,6 +861,30 @@ async function loadListings() {
   render();
 }
 loadListings();
+
+/* ---------- Reviews ---------- */
+async function loadReviews() {
+  if (!SETTINGS.reviewsCsvUrl) return;
+  try {
+    const res = await fetch(SETTINGS.reviewsCsvUrl + (SETTINGS.reviewsCsvUrl.includes("?") ? "&" : "?") + "t=" + Date.now());
+    if (!res.ok) return;
+    const rows = parseCSV(await res.text());
+    const head = rows[0].map(h => h.trim().toLowerCase());
+    const g = (r, k) => (r[head.indexOf(k)] ?? "").trim();
+    const list = rows.slice(1).filter(r => /^(yes|y)$/i.test(g(r, "show on website")) && g(r, "review"));
+    if (!list.length) return;
+    $("#rvGrid").innerHTML = list.map(r => {
+      const n = Math.max(1, Math.min(5, parseInt(g(r, "rating")) || 5));
+      const who = [g(r, "name"), g(r, "nationality")].filter(Boolean).join(", ");
+      const what = [g(r, "service"), g(r, "property")].filter(Boolean).join(" · ");
+      return `<article class="rv"><div class="st" aria-label="${n} out of 5">${"★".repeat(n)}${"☆".repeat(5 - n)}</div>
+        <blockquote>${esc(g(r, "review"))}</blockquote>
+        <div class="by"><b>${esc(who)}</b>${what ? "<br>" + esc(what) : ""}</div></article>`;
+    }).join("");
+    $("#reviews").hidden = false; $("#navReviews").hidden = false;
+  } catch (e) { console.warn("Reviews not loaded", e); }
+}
+loadReviews();
 </script>
 </body>
 </html>
