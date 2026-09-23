@@ -458,7 +458,10 @@ const SETTINGS = {
 
   // Form delivery: leave empty and enquiries open in WhatsApp as a ready-made message.
   // Or create a free form at formspree.io and paste its link here to receive enquiries by email.
-  formEndpoint: ""
+  formEndpoint: "",
+
+  // 📊 GOOGLE SHEETS: paste your published CSV link here (see guide). Leave empty to use the LISTINGS below.
+  sheetCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT4_YgAp8m3oyWmjaoFeu40j7MtP10tfN8RXmhehVcygIw1b-LEqX89aB8RvEYiusbpr1VBE-uDuNyn/pub?gid=1976690082&single=true&output=csv"
 };
 
 /* =========================================================
@@ -468,7 +471,7 @@ const SETTINGS = {
    images: add photo links in quotes, separated by commas. The first one is the cover.
    These are SAMPLE listings – replace them with your real properties.
    ========================================================= */
-const LISTINGS = [
+let LISTINGS = [
   {
     title: "Sample duplex penthouse",
     status: "rent", price: 150000,
@@ -582,7 +585,10 @@ $$("[data-all]").forEach(b => b.onclick = () => {
 });
 
 // Property types for the search dropdown
-[...new Set(LISTINGS.map(l => l.type))].forEach(t => $("#typeSelect").insertAdjacentHTML("beforeend", `<option>${esc(t)}</option>`));
+function fillTypes() {
+  $("#typeSelect").innerHTML = '<option value="">Any type</option>' +
+    [...new Set(LISTINGS.map(l => l.type).filter(Boolean))].map(t => `<option>${esc(t)}</option>`).join("");
+}
 
 const filters = { status: "", type: "", beds: "", q: "" };
 const priceHtml = l => fmt(l.price) + (l.status === "rent" ? " <small>/ month</small>" : "");
@@ -603,10 +609,10 @@ function render() {
         ${l.images && l.images.length > 1 ? `<span class="count">${l.images.length} photos</span>` : ""}
       </div>
       <div class="body">
-        <div class="price">${priceHtml(l)}</div>
+        <div class="price">${l.price ? priceHtml(l) : "Price on request"}</div>
         <h3>${esc(l.title)}</h3>
         <div class="loc">${esc(l.area)}</div>
-        <div class="specs"><span>${l.beds} bed</span><span>${l.baths} bath</span><span>${l.size} sqm</span><span>${esc(l.type)}</span></div>
+        <div class="specs">${l.beds !== "" ? `<span>${l.beds} bed</span>` : ""}${l.baths !== "" ? `<span>${l.baths} bath</span>` : ""}${l.size ? `<span>${l.size} sqm</span>` : ""}${l.type ? `<span>${esc(l.type)}</span>` : ""}</div>
       </div></button>`;
   }).join("") : `<div class="empty">No properties match this search. Try another area or send an enquiry below and I will find options for you.</div>`;
   $$(".card").forEach(c => c.onclick = () => openDetail(+c.dataset.i));
@@ -644,7 +650,7 @@ function openDetail(i) {
   cur = LISTINGS[i]; gi = 0; drawGallery();
   const l = cur, rows = [
     ["Status", l.status === "rent" ? "For rent" : "For sale"], ["Type", l.type],
-    ["Bedrooms", l.beds], ["Bathrooms", l.baths], ["Size", l.size + " sqm"],
+    ["Bedrooms", l.beds], ["Bathrooms", l.baths], ["Size", l.size ? l.size + " sqm" : ""],
     ["Floor", l.floor], ["Furnishing", l.furnished], ["Parking", l.parking]
   ].filter(r => r[1] !== undefined && r[1] !== "");
   $("#info").innerHTML = `
@@ -735,7 +741,62 @@ const mb = $(".menu-btn");
 mb.onclick = () => { const o = $("#nav").classList.toggle("open"); mb.setAttribute("aria-expanded", o); };
 $$("#nav a").forEach(a => a.onclick = () => { $("#nav").classList.remove("open"); mb.setAttribute("aria-expanded", false); });
 
-render();
+/* ---------- Google Sheets loader ---------- */
+function parseCSV(text) {
+  const rows = []; let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+      else cell += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell); rows.push(row); row = []; cell = "";
+    } else cell += c;
+  }
+  if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(x => x.trim() !== ""));
+}
+// Turn a Google Drive share link into a direct image link
+function driveImg(u) {
+  u = u.trim();
+  const m = u.match(/\/d\/([-\w]{20,})/) || u.match(/[?&]id=([-\w]{20,})/);
+  return m ? `https://drive.google.com/thumbnail?id=${m[1]}&sz=w1600` : u;
+}
+const num = v => { const n = parseFloat(String(v || "").replace(/[^\d.]/g, "")); return isNaN(n) ? "" : n; };
+function rowsToListings(rows) {
+  const head = rows[0].map(h => h.trim().toLowerCase());
+  const get = (r, k) => (r[head.indexOf(k)] ?? "").trim();
+  return rows.slice(1).map(r => ({
+    show: get(r, "show on website").toLowerCase(),
+    title: get(r, "title"),
+    status: /sale|ขาย/i.test(get(r, "status")) ? "sale" : "rent",
+    price: num(get(r, "price")),
+    city: get(r, "city"), area: get(r, "area"), type: get(r, "type"),
+    beds: num(get(r, "bedrooms")), baths: num(get(r, "bathrooms")), size: num(get(r, "size (sqm)")),
+    floor: get(r, "floor"), furnished: get(r, "furnished"), parking: get(r, "parking"),
+    description: get(r, "description"),
+    features: get(r, "features").split(/[;\n]/).map(x => x.trim()).filter(Boolean),
+    images: get(r, "photo links").split(/[\s,;]+/).filter(x => /^https?:/.test(x)).map(driveImg)
+  })).filter(l => l.title && !/^(no|n|ไม่)$/.test(l.show));
+}
+async function loadListings() {
+  if (SETTINGS.sheetCsvUrl) {
+    $("#grid").innerHTML = '<div class="empty">Loading properties…</div>';
+    try {
+      const url = SETTINGS.sheetCsvUrl + (SETTINGS.sheetCsvUrl.includes("?") ? "&" : "?") + "t=" + Date.now();
+      const res = await fetch(url);
+      if (!res.ok) throw 0;
+      const list = rowsToListings(parseCSV(await res.text()));
+      if (list.length) LISTINGS = list;
+    } catch (e) { console.warn("Could not load Google Sheet, using built-in listings.", e); }
+  }
+  fillTypes();
+  render();
+}
+loadListings();
 </script>
 </body>
 </html>
