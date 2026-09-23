@@ -104,7 +104,7 @@ h2{font-family:var(--serif);font-weight:500;font-size:clamp(2rem,3.6vw,2.9rem);l
 
 /* Consultant */
 .about-sec{background:var(--mist)}
-.about{display:grid;grid-template-columns:.8fr 1.2fr;gap:70px;align-items:center}
+.about{display:grid;grid-template-columns:300px 1fr;gap:70px;align-items:center}
 .portrait{position:relative;isolation:isolate}
 .portrait img{position:relative;z-index:1;width:100%;aspect-ratio:4/5;object-fit:cover;object-position:top}
 .portrait::after{content:"";position:absolute;inset:18px -18px -18px 18px;border:1px solid var(--gold);z-index:0}
@@ -205,7 +205,7 @@ dialog::backdrop{background:rgba(0,0,0,.85)}
   .search label{border-bottom:1px solid var(--line)}
   .search button{grid-column:1/-1;padding:16px}
   .about{grid-template-columns:1fr;gap:50px}
-  .portrait{max-width:340px}
+  .portrait{max-width:230px}
   .form-wrap,.dlg{grid-template-columns:1fr;gap:40px}
   .foot{grid-template-columns:1fr 1fr;gap:40px}
   .svc{grid-template-columns:1fr}
@@ -322,7 +322,7 @@ dialog::backdrop{background:rgba(0,0,0,.85)}
         <div class="contact-card"><div class="contact-list" id="contactList"></div></div>
       </div>
       <form class="enq" id="enqForm" novalidate>
-        <h3 class="fs-title full">Client's basic profile <small>All fields required</small></h3>
+        <h3 class="fs-title full">My basic profile <small>All fields required</small></h3>
         <label>I want people to know me as<input name="name" required autocomplete="name"></label>
         <label>My nationality<input name="nationality" required></label>
         <label>My occupation<input name="occupation" required></label>
@@ -438,7 +438,7 @@ const SETTINGS = {
 
   phone:     "+66 63 253 4395",
   phoneLocal: "063-253-4395",   // shown on the form and in the enquiry message
-  thankYou:  "Thank you so much for your kind cooperation. 🥰🙏🏼",
+  thankYou:  "Thank you so much for your kind cooperation.",
   whatsapp:  "66632534395",  // numbers only, with country code
   line:      "saranya20th",
   emailSales:  "saranyadirect@gmail.com",           // "Directly to sale"
@@ -713,7 +713,7 @@ $("#enqForm").onsubmit = async e => {
   const extra = { contact: "WhatsApp / LINE", email: "Email", interest: "Looking to", budget: "Budget", beds: "Bedrooms",
     property: "Property of interest", areas: "Preferred areas", message: "Notes" };
   const text = [
-    "Client's Basic Profile",
+    "My Basic Profile",
     ...Object.keys(LABELS).map(k => `• ${LABELS[k]}: ${data[k]}`),
     "",
     ...Object.keys(extra).filter(k => data[k] && data[k] !== "Any").map(k => `• ${extra[k]}: ${data[k]}`),
@@ -790,7 +790,7 @@ async function loadListings() {
       const res = await fetch(url);
       if (!res.ok) throw 0;
       const list = rowsToListings(parseCSV(await res.text()));
-      if (list.length) LISTINGS = list;
+      LISTINGS = list;   // sheet loaded: show exactly what is in the sheet (even if empty)
     } catch (e) { console.warn("Could not load Google Sheet, using built-in listings.", e); }
   }
   fillTypes();
