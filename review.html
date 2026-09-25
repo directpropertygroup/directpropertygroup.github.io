@@ -147,7 +147,9 @@ footer{text-align:center;font-size:.82rem;color:var(--muted);padding:0 20px 40px
 const SETTINGS = {
   agentName: "Miss Saranya Aunkham (Sofia)",
   whatsapp: "66632534395",
-  reviewEndpoint: "",      // where reviews are saved (set up later)
+    reviewEndpoint: "https://api.web3forms.com/submit",
+
+
   googleReviewUrl: ""      // your Google review link (after Google Business Profile)
 };
 /* ---------------------------------------------- */
@@ -177,7 +179,10 @@ $("#rv").onsubmit = async ev => {
                 [(d.review || "").trim().length < 10, f.review, "Please write a few words about your experience."]];
   need.forEach(([bad, el, t]) => { flag(el, bad ? t : ""); if (bad && !first) first = el; });
   if (first) { $("#msg").textContent = "Please complete the highlighted fields."; first.scrollIntoView({ block: "center" }); return; }
-  d.consent = d.consent || "No";
+  d.consent = d.consent || "No";d.consent = d.consent || "No";
+d.access_key = "2f6eb7c0-6393-420c-9efb-c15028ec67cd";
+d.subject = "New review: " + d.rating + " stars from " + d.name;
+
   d.date = new Date().toISOString().slice(0, 10);
   if (SETTINGS.reviewEndpoint) {
     $("#msg").textContent = "Sending…";
